@@ -1,0 +1,89 @@
+{
+  "name": "feathers-localforage",
+  "description": "A client side service based on localforage that persists to IndexedDB, WebSQL, or LocalStorage",
+  "version": "1.0.0",
+  "homepage": "https://github.com/feathersjs-offline/feathers-localforage",
+  "main": "lib/",
+  "types": "types/",
+  "keywords": [
+    "feathers",
+    "feathers-plugin"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/feathersjs-offline/feathers-localforage.git"
+  },
+  "author": {
+    "name": "Feathers contributors",
+    "email": "hello@feathersjs.com",
+    "url": "https://feathersjs.com"
+  },
+  "contributors": [],
+  "bugs": {
+    "url": "https://github.com/feathersjs-ecosystem/feathers-localforage/issues"
+  },
+  "engines": {
+    "node": ">= 6"
+  },
+  "browserslist": [
+    "last 2 versions",
+    "IE 10"
+  ],
+  "scripts": {
+    "add-dist": "npm run clean && npm run build && git add dist/ --force && git commit -am \"Updating dist\"",
+    "clean": "shx rm -rf dist/ && shx mkdir -p dist",
+    "build": "npm run clean && npm run webpack && npm run webpack:production",
+    "webpack": "webpack",
+    "webpack:production": "NODE_ENV=production webpack",
+    "publish": "git push origin --tags && npm run changelog && git push origin",
+    "changelog": "github_changelog_generator && git add CHANGELOG.md && git commit -am \"Updating changelog\"",
+    "release:patch": "npm run add-dist && npm version patch && npm publish",
+    "release:minor": "npm run add-dist && npm version minor && npm publish",
+    "release:major": "npm run add-dist && npm version major && npm publish",
+    "lint": "semistandard --fix",
+    "mocha": "mocha --opts mocha.opts",
+    "dtslint": "dtslint types",
+    "test": "npm run lint && npm run coverage",
+    "coverage": "istanbul cover node_modules/mocha/bin/_mocha -- --opts mocha.opts"
+  },
+  "semistandard": {
+    "env": [
+      "mocha"
+    ]
+  },
+  "directories": {
+    "lib": "lib"
+  },
+  "dependencies": {
+    "@feathersjs/adapter-commons": "^4.4.3",
+    "@feathersjs/commons": "^4.5.11",
+    "@feathersjs/errors": "^4.5.11",
+    "debug": "^4.1.1",
+    "localforage": "^1.9.0",
+    "sift": "^11.0.10"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.8.3",
+    "@babel/preset-env": "^7.8.3",
+    "@feathersjs/adapter-tests": "^4.4.3",
+    "@feathersjs/errors": "^4.4.3",
+    "@feathersjs/express": "^4.4.3",
+    "@feathersjs/feathers": "^4.4.3",
+    "@feathersjs/socketio": "^4.4.3",
+    "babel-loader": "^8.0.6",
+    "browserify": "^16.5.0",
+    "dtslint": "^3.0.0",
+    "fake-indexeddb": "^3.1.3",
+    "istanbul": "^1.1.0-alpha.1",
+    "localstorage-memory": "^1.0.3",
+    "mocha": "^7.0.0",
+    "parallel-webpack": "^2.4.0",
+    "semistandard": "^14.2.0",
+    "shx": "^0.3.2",
+    "uglifyjs-webpack-plugin": "^2.2.0",
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10",
+    "webpack-merge": "^4.2.2"
+  }
+}
