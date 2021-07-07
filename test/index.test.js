@@ -1,14 +1,9 @@
 const adapterTests = require('@feathersjs/adapter-tests');
 const errors = require('@feathersjs/errors');
 const feathers = require('@feathersjs/feathers');
-require('fake-indexeddb/auto');
+// require('fake-indexeddb/auto');
 const localStorage = require('localstorage-memory');
 global.localStorage = localStorage;
-
-// const DatArchive = require('node-dat-archive');
-// const WebDB = require('@beaker/webdb');
-// const webDB = new WebDB('./webdb-feathers', { DatArchive });
-// global.webDB = webDB;
 
 const assert = require('assert');
 
@@ -80,8 +75,6 @@ const testSuite = adapterTests([
 ]);
 
 describe('Feathers LocalForage Service', () => {
-  // beforeEach();
-
   const events = ['testing'];
   const app = feathers()
     .use('/people', service({ events, name: 'test-storage-1' }))
@@ -89,130 +82,128 @@ describe('Feathers LocalForage Service', () => {
       id: 'customid', events, name: 'test-storage-2'
     }));
 
-  it('is CommonJS compatible', () => {
-    assert.strictEqual(typeof require('../lib'), 'function');
+  describe('Specific adapter tests', () => {
+    after(done => {
+      console.log('\n');
+      done();
+    });
+
+    it('is CommonJS compatible', () => {
+      assert.strictEqual(typeof require('../lib'), 'function');
+    });
+
+    it('throws on name reuse', done => {
+      const name = 'test-storage-5';
+
+      assert.throws(() => {
+        app.use('service1', service({ name }));
+        app.use('service2', service({ name }));
+      });
+
+      done();
+    });
+
+    it('accepts on name reuse with reuseKeys option set', done => {
+      const name = 'test-storage-6';
+
+      let flag = true;
+      try {
+        app.use('service1', service({ name }));
+        app.use('service2', service({ name, reuseKeys: true }));
+      } catch (err) {
+        flag = false;
+      }
+      assert.strictEqual(flag, true);
+
+      done();
+    });
+
+    it('accepts on name reuse with reuseKeys option set + contents', async () => {
+      const name = 'test-storage-7';
+
+      let flag = true;
+      try {
+        app.use('service1', service({ name }));
+        await app.service('service1').create({ name: 'Bond', age: 58 });
+        app.use('service2', service({ name, reuseKeys: true }));
+      } catch (err) {
+        console.log(`Reuse with flag + contents failed. err=${err.name}, message=${err.message}`);
+        flag = false;
+      }
+      assert.strictEqual(flag, true);
+    });
+
+    it('create with id set', async () => {
+      const service = app.service('people');
+
+      const data = { id: '123', name: 'David', age: 32 };
+      let result = {};
+      try {
+        result = await service.create(data, {});
+      } catch (err) {
+        assert.strictEqual(false, true, 'Error creating item with id set');
+      }
+
+      assert.strictEqual(result.id, data.id, 'Strange difference on "id"');
+      assert.strictEqual(result.name, data.name, 'Strange difference on "name"');
+      assert.strictEqual(result.age, data.age, 'Strange difference on "age"');
+      result = await service.remove(data.id, {});
+    });
   });
+  describe('getEntries', () => {
+    let service = null;
+    const serviceName = 'people';
+    let doug = {};
+    const idProp = 'id';
 
-  // it('loads and sets data in storage', () => {
-  //   const name = 'test-storage-3';
+    after(done => {
+      console.log('\n');
+      done();
+    });
 
-  //   storage.setItem(name, '{ "0": { "id": 0, "text": "test 0" } }');
+    beforeEach(async () => {
+      service = app.service(serviceName);
+      doug = await service.create({
+        name: 'Doug',
+        age: 32
+      });
+    });
 
-  //   const app = feathers()
-  //     .use('/messages', service({ name, storage }));
-  //   const messageService = app.service('messages');
+    afterEach(async () => {
+      try {
+        await service.remove(doug[idProp]);
+      } catch (error) { }
+    });
 
-  //   return messageService.create({
-  //     text: 'testing 1'
-  //   }).then(() => messageService.create({
-  //     text: 'testing 2'
-  //   })).then(() => {
-  //     return new Promise((resolve) => {
-  //       setTimeout(() => {
-  //         const data = JSON.parse(storage.getItem(name));
-  //         assert.deepStrictEqual(data, {
-  //           0: {
-  //             id: 0,
-  //             text: 'test 0'
-  //           },
-  //           1: {
-  //             id: 1,
-  //             text: 'testing 1'
-  //           },
-  //           2: {
-  //             id: 2,
-  //             text: 'testing 2'
-  //           }
-  //         });
-  //         resolve();
-  //       }, 250);
-  //     });
-  //   }).then(() => {
-  //     return messageService.remove(0)
-  //       .then(() => messageService.remove(1));
-  //   }).then(() => {
-  //     return new Promise((resolve) => {
-  //       setTimeout(() => {
-  //         const data = JSON.parse(storage.getItem(name));
-  //         assert.deepStrictEqual(data, {
-  //           2: {
-  //             id: 2,
-  //             text: 'testing 2'
-  //           }
-  //         });
-  //         resolve();
-  //       }, 250);
-  //     });
-  //   });
-  // });
+    it('getEntries', async () => {
+      const data = { id: '123', name: 'David', age: 32 };
 
-  // it('gets data in storage', done => {
-  //   const name = 'test-storage-4';
+      let result = {};
+      try {
+        await service.create(data, {});
+        result = await service.getEntries();
+      } catch (err) {
+        assert.strictEqual(false, true, 'Error getting all entries');
+      }
 
-  //   storage.setItem(name, '{ "0": { "id": 0, "text": "test 0" } }');
+      assert.strictEqual(result.length, 2, 'Length was expected to be 2');
 
-  //   const app = feathers()
-  //     .use('/messages', service({ name, storage }));
-  //   const messageService = app.service('messages');
+      result = await service.remove(data.id, {});
+    });
 
-  //   messageService.get(0).then((data) => {
-  //     assert.deepStrictEqual(data, {
-  //       id: 0,
-  //       text: 'test 0'
-  //     });
-  //   }).then(() => {
-  //     return messageService.find().then((data) => {
-  //       assert.deepStrictEqual(data, [{
-  //         id: 0,
-  //         text: 'test 0'
-  //       }]);
-  //     });
-  //   }).then(done, done);
-  // });
+    it('getEntries + $select', async () => {
+      let result = {};
+      try {
+        result = await service.getEntries({ query: { $select: ['age'] } });
+      } catch (err) {
+        assert.strictEqual(false, true, 'Error getting all entries');
+      }
 
-  // it('throws on name reuse', done => {
-  //   const name = 'test-storage-5';
-
-  //   assert.throws(() => {
-  //     service({ storage, name });
-  //     service({ storage, name });
-  //   });
-
-  //   done();
-  // });
-
-  // it('accepts on name reuse with reuseKeys option set', done => {
-  //   const name = 'test-storage-6';
-
-  //   let flag = true;
-  //   try {
-  //     service({ storage, name });
-  //     service({ storage, name, reuseKeys: true });
-  //   } catch (err) {
-  //     flag = false;
-  //   }
-  //   assert.strictEqual(flag, true);
-
-  //   done();
-  // });
-
-  // it('localstorage clear with empty storage option', done => {
-  //   const name = 'test-storage-7';
-
-  //   storage.setItem(name, '{ "0": { "id": 0, "text": "test 0" } }');
-
-  //   const app = feathers()
-  //     .use('/messages', service({ name, storage, store: {} }));
-
-  //   const messageService = app.service('messages');
-  //   const res = messageService.find();
-
-  //   assert.strictEqual(res['0'], undefined);
-  //   const resString = JSON.stringify(res);
-  //   assert.strictEqual(resString, '{}');
-
-  //   done();
-  // });
+      assert.strictEqual(result.length, 1, 'Length was expected to be 1');
+      assert.strictEqual(result[0].name, undefined, 'Expected "name" to be undefined');
+      assert.strictEqual(result[0].age, doug.age, 'Strange difference on "age"');
+    });
+  });
 
   testSuite(app, errors, 'people');
   testSuite(app, errors, 'people-customid', 'customid');

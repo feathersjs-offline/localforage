@@ -8,7 +8,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 const config = {
   entry: './lib',
   output: {
-    library: ['feathers', 'localstorage'],
+    library: ['feathers', 'localforage'],
     libraryTarget: 'umd',
     path: path.resolve(__dirname, 'dist')
   },
@@ -29,14 +29,14 @@ const dev = {
   mode: 'development',
   devtool: 'source-map',
   output: {
-    filename: 'feathers-localstorage.js'
+    filename: 'feathers-localforage.js'
   }
 };
 
 const prod = {
   mode: 'production',
   output: {
-    filename: 'feathers-localstorage.min.js'
+    filename: 'feathers-localforage.min.js'
   },
   plugins: [new UglifyJSPlugin({
     uglifyOptions: {
