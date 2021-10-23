@@ -1,52 +1,64 @@
 const path = require('path');
 const webpack = require('webpack');
-const merge = require('webpack-merge');
-const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
+const { merge } = require('webpack-merge');
 
-const isProduction = process.env.NODE_ENV === 'production';
-
-const config = {
-  entry: './lib',
-  output: {
-    library: ['feathers', 'localforage'],
-    libraryTarget: 'umd',
-    path: path.resolve(__dirname, 'dist')
-  },
-  module: {
-    rules: [{
-      test: /\.js/,
-      exclude: /node_modules\/(?!(@feathersjs|debug|feathers|sift))/,
-      loader: 'babel-loader',
-      options: {
-        presets: ['@babel/preset-env']
+function createConfig (lib, dist, name, isProduction = false) {
+  const output = name === 'index' ? 'feathersjs-offline' : 'feathersjs-offline-' + name;
+  const entry = 'index';
+  const commons = {
+    entry: `${lib}/${entry}.js`,
+    resolve: {
+      fallback: {
+        "util": false,
+        "fs": false,
+        "assert": false,
+        "stream": false,
+        "constants": false,
+        "path": false
       }
-    }]
-  },
-  plugins: []
-};
-
-const dev = {
-  mode: 'development',
-  devtool: 'source-map',
-  output: {
-    filename: 'feathers-localforage.js'
-  }
-};
-
-const prod = {
-  mode: 'production',
-  output: {
-    filename: 'feathers-localforage.min.js'
-  },
-  plugins: [new UglifyJSPlugin({
-    uglifyOptions: {
-      ie8: false,
-      comments: false,
-      sourceMap: false
+    },
+    output: {
+      library: `feathersjsOffline${name.substr(0,1).toUpperCase()}${name.substr(1)}`,
+      libraryTarget: 'var', // 'umd',
+      globalObject: 'this',
+      path: `${dist}`,
+      filename: `${output}.js`
+    },
+    module: {
+      rules: [{
+        test: /\.js/,
+        exclude: /node_modules\/(?!(@feathersjs|debug))/,
+        loader: 'babel-loader',
+        options: {
+          presets: ['@babel/preset-env']
+        }
+      }]
     }
-  }), new webpack.DefinePlugin({
-    'process.env.NODE_ENV': JSON.stringify('production')
-  })]
-};
+  };
 
-module.exports = merge(config, isProduction ? prod : dev);
+  const dev = {
+    mode: 'development',
+    devtool: 'source-map'
+  };
+
+  const production = {
+    mode: 'production',
+    output: {
+      filename: `${output}.min.js`
+    },
+    optimization: {
+      minimize: true,
+      }
+  };
+
+  return merge(commons, isProduction ? production : dev);
+}
+
+module.exports = (env) => {
+  let lib = path.resolve(env.home, 'lib') || path.resolve(__dirname, 'lib');
+  let dist = env.dist || path.resolve(__dirname, 'dist')
+  return [
+    createConfig(lib, dist, 'localforage'),
+    createConfig(lib, dist, 'localforage', true),
+  ];
+}

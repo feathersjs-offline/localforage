@@ -1,13 +1,12 @@
 const adapterTests = require('@feathersjs/adapter-tests');
 const errors = require('@feathersjs/errors');
 const feathers = require('@feathersjs/feathers');
-// require('fake-indexeddb/auto');
 const localStorage = require('localstorage-memory');
 global.localStorage = localStorage;
 
 const assert = require('assert');
 
-const service = require('../lib');
+const service = require('../src');
 
 const testSuite = adapterTests([
   '.options',
@@ -31,12 +30,15 @@ const testSuite = adapterTests([
   '.update + $select',
   '.update + id + query',
   '.update + NotFound',
+  ".update + query + NotFound",
   '.patch',
   '.patch + $select',
   '.patch + id + query',
   '.patch multiple',
-  '.patch multi query',
   '.patch + NotFound',
+  ".patch multi query same",
+  ".patch multi query changed",
+  ".patch + query + NotFound",
   '.create',
   '.create + $select',
   '.create multi',
@@ -77,9 +79,9 @@ const testSuite = adapterTests([
 describe('Feathers LocalForage Service', () => {
   const events = ['testing'];
   const app = feathers()
-    .use('/people', service({ events, name: 'test-storage-1' }))
+    .use('/people', service({ events, name: 'test-storage-1', date: false }))
     .use('/people-customid', service({
-      id: 'customid', events, name: 'test-storage-2'
+      id: 'customid', events, name: 'test-storage-2', date: false
     }));
 
   describe('Specific adapter tests', () => {
@@ -89,7 +91,7 @@ describe('Feathers LocalForage Service', () => {
     });
 
     it('is CommonJS compatible', () => {
-      assert.strictEqual(typeof require('../lib'), 'function');
+      assert.strictEqual(typeof require('../src'), 'function');
     });
 
     it('throws on name reuse', done => {
@@ -103,7 +105,7 @@ describe('Feathers LocalForage Service', () => {
       done();
     });
 
-    it('accepts on name reuse with reuseKeys option set', done => {
+    it('accepts name reuse with reuseKeys option set', done => {
       const name = 'test-storage-6';
 
       let flag = true;
@@ -118,43 +120,91 @@ describe('Feathers LocalForage Service', () => {
       done();
     });
 
-    it('accepts on name reuse with reuseKeys option set + contents', async () => {
+    it('accepts name reuse with reuseKeys option set + contents', async () => {
       const name = 'test-storage-7';
 
-      let flag = true;
-      try {
-        app.use('service1', service({ name }));
-        await app.service('service1').create({ name: 'Bond', age: 58 });
-        app.use('service2', service({ name, reuseKeys: true }));
-      } catch (err) {
-        console.log(`Reuse with flag + contents failed. err=${err.name}, message=${err.message}`);
-        flag = false;
-      }
-      assert.strictEqual(flag, true);
+      let flag = null;
+      app.use('service3', service({ name }));
+      app.service('service3').create({ name: 'Bond', age: 58 })
+        .then(() => app.use('service4', service({ name, reuseKeys: true })))
+        .then(() => flag = true)
+        .then(() => {
+          assert.strictEqual(flag, true, `Reuse with flag + contents failed.`);
+        })
+        .catch(err => {
+          assert.strictEqual(false, true, `Reuse with flag + contents failed. err=${err.name}, message=${err.message}`);
+          flag = false;
+        });
     });
 
+    it('works with default options', () => {
+      app.use('service1', service());
+      const myService = app.service('service1');
+      return myService.create({ id: 1, name: 'Bond' })
+        .catch(err => {
+          assert.strictEqual(true, false, `ERROR: ${err.name}, ${err.message}`);
+        });
+    });
+
+    it('special debug (_local)', () => {
+      app.use('service2', service({ name: 'service2_local' }));
+      const myService = app.service('service2');
+      return myService.create({ id: 1, name: 'Bond' })
+        .catch(err => {
+          assert.strictEqual(true, false, `ERROR: ${err.name}, ${err.message}`);
+        });
+    });
+
+    it('special debug (_queue)', () => {
+      app.use('service3', service({ name: 'service3_queue' }));
+      const myService = app.service('service3');
+      return myService.create({ id: 1, name: 'Bond' })
+        .catch(err => {
+          assert.strictEqual(true, false, `ERROR: ${err.name}, ${err.message}`);
+        });
+    });
+
+    it('get unknown id throws', async () => {
+      app.use('service4', service({ name: 'service4' }));
+      const myService = app.service('service4');
+      let flag = null;
+      try {
+        await myService.create({ id: 1, name: 'Bond' })
+        await myService.get(99);
+        flag = true;
+      } catch (err) {
+        flag = false;
+      }
+      assert.strictEqual(flag, false, 'Did not throw as expected');
+    });
+
+
     it('create with id set', async () => {
-      const service = app.service('people');
+      const name = 'test-storage-8';
+      app.use('service5', service({ name }));
+      const myService = app.service('service5');
 
       const data = { id: '123', name: 'David', age: 32 };
       let result = {};
       try {
-        result = await service.create(data, {});
+        result = await myService.create(data, {});
       } catch (err) {
-        assert.strictEqual(false, true, 'Error creating item with id set');
+        assert.strictEqual(false, true, `Error creating item with id set. err=${err.name}, ${err.message}`);
       }
 
       assert.strictEqual(result.id, data.id, 'Strange difference on "id"');
       assert.strictEqual(result.name, data.name, 'Strange difference on "name"');
       assert.strictEqual(result.age, data.age, 'Strange difference on "age"');
-      result = await service.remove(data.id, {});
+      result = await myService.remove(data.id, {});
     });
   });
+
   describe('getEntries', () => {
-    let service = null;
-    const serviceName = 'people';
+    let myService = null;
+    const serviceName = 'service6';
+    const name = 'test-storage-9';
     let doug = {};
-    const idProp = 'id';
+    let idProp = 'unknown??';
 
     after(done => {
       console.log('\n');
@@ -162,8 +212,10 @@ describe('Feathers LocalForage Service', () => {
     });
 
     beforeEach(async () => {
-      service = app.service(serviceName);
-      doug = await service.create({
+      app.use(serviceName, service({ name, reuseKeys: true }))
+      myService = app.service(serviceName);
+      idProp = myService.id;
+      doug = await myService.create({
         name: 'Doug',
         age: 32
       });
@@ -171,30 +223,29 @@ describe('Feathers LocalForage Service', () => {
 
     afterEach(async () => {
       try {
-        await service.remove(doug[idProp]);
-      } catch (error) { }
+        await myService.remove(doug[idProp]);
+      } catch (err) {
+        throw new Error(`Unexpectedly failed to remove 'doug'! err=${err.name}, ${err.message} id=${doug[idProp]}, idProp=${idProp}`);
+      }
     });
 
     it('getEntries', async () => {
-      const data = { id: '123', name: 'David', age: 32 };
-
       let result = {};
       try {
-        await service.create(data, {});
-        result = await service.getEntries();
+        result = await myService.getEntries();
       } catch (err) {
         assert.strictEqual(false, true, 'Error getting all entries');
       }
 
-      assert.strictEqual(result.length, 2, 'Length was expected to be 2');
-
-      result = await service.remove(data.id, {});
+      assert.strictEqual(result.length, 1, 'Length was expected to be 1');
+      assert.strictEqual(result[0].name, doug.name, 'Expected "name" to be "Doug"');
+      assert.strictEqual(result[0].age, doug.age, 'Strange difference on "age"');
     });
 
     it('getEntries + $select', async () => {
       let result = {};
       try {
-        result = await service.getEntries({ query: { $select: ['age'] } });
+        result = await myService.getEntries({ query: { $select: ['age'] } });
       } catch (err) {
         assert.strictEqual(false, true, 'Error getting all entries');
       }
@@ -203,6 +254,145 @@ describe('Feathers LocalForage Service', () => {
       assert.strictEqual(result[0].name, undefined, 'Expected "name" to be undefined');
       assert.strictEqual(result[0].age, doug.age, 'Strange difference on "age"');
     });
+  });
+
+  describe('Types are preserved', () => {
+    const serviceName = 'types';
+    const bDate = new Date('2001-09-11T09:00:00.000Z');
+    let sService = null;
+    let doug;
+    const idProp = 'id';
+    class TestClass {
+      dummy() {
+      }
+    }
+
+    after(done => {
+      console.log('\n');
+      done();
+    });
+
+    beforeEach(async () => {
+      doug = {};
+    });
+
+    afterEach(async () => {
+      try {
+        await sService.remove(doug[idProp]);
+      } catch (err) {
+        throw new Error(`Unexpectedly failed to remove 'doug'! err=${err.name}, ${err.message} id=${doug[idProp]}, idProp=${idProp}`);
+      }
+    });
+
+    it('types ok (dates set to \'true\')', async () => {
+      const app = feathers()
+        .use(serviceName, service({ id: idProp, name: serviceName, reuseKeys: true, dates: true }));
+      sService = app.service(serviceName);
+      doug = await sService.create({
+        [idProp]: 0,
+        name: 'Doug',
+        age: 32,
+        birthdate: bDate,
+        tc: new TestClass()
+      });
+
+      let result = {};
+      try {
+        result = await sService.getEntries();
+      } catch (err) {
+        assert.strictEqual(false, true, 'Error getting all entries');
+      }
+
+      assert.strictEqual(typeof result[0].name, 'string', '\'name\' was expected to be of type \'string\'');
+      assert.strictEqual(result[0].name, 'Doug', '\'name\' was expected to equal \'Doug\'');
+      assert.strictEqual(typeof result[0].age, 'number', '\'age\' was expected to be of type \'number\'');
+      assert.strictEqual(result[0].age, 32, '\'age\' was expected to equal 32');
+      assert.strictEqual(typeof result[0].birthdate, 'object', '\'birthdate\' was expected to be of type \'object\'');
+      assert.strictEqual(result[0].birthdate.toISOString(), bDate.toISOString(), `'birthdate' was expected to equal '${bDate.toISOString()}'`);
+      assert.strictEqual(result[0].birthdate - bDate, 0, '\'birthdate\' was expected to equal \'bDate\''); // eslint-disable-line eqeqeq
+      assert.strictEqual(JSON.stringify(result[0].tc), JSON.stringify(doug.tc), '\'tc\' expected to be equal to \'TestClass\'');
+    });
+
+    it('types ok (dates set to \'false\' (default))', async () => {
+      const app = feathers()
+        .use(serviceName, service({ id: idProp, name: serviceName, reuseKeys: true }));
+      sService = app.service(serviceName);
+      const dDate = new Date(bDate.getTime() + 1);
+      doug = await sService.create({
+        [idProp]: 0,
+        name: 'Doug',
+        age: 32,
+        birthdate: bDate,
+        deceased: dDate.toISOString(),
+        tc: new TestClass()
+      });
+      let result = {};
+      try {
+        result = await sService.getEntries();
+      } catch (err) {
+        assert.strictEqual(false, true, 'Error getting all entries');
+      }
+
+      assert.strictEqual(typeof result[0].name, 'string', '\'name\' was expected to be of type \'string\'');
+      assert.strictEqual(result[0].name, 'Doug', '\'name\' was expected to equal \'Doug\'');
+      assert.strictEqual(typeof result[0].age, 'number', '\'age\' was expected to be of type \'number\'');
+      assert.strictEqual(result[0].age, 32, '\'age\' was expected to equal 32');
+      assert.strictEqual(typeof result[0].birthdate, 'string', `'birthdate' was expected to be of type 'string'`);
+      assert.strictEqual(result[0].birthdate, bDate.toISOString(), `'birthdate' was expected to equal '${bDate.toISOString()}'`);
+      assert.strictEqual(new Date(result[0].birthdate) - bDate, 0, '\'birthdate\' was expected to equal \'bDate\''); // eslint-disable-line eqeqeq
+      assert.strictEqual(typeof result[0].deceased, 'string', `'deceased' was expected to be of type 'string'`);
+      assert.strictEqual(new Date(result[0].deceased).toISOString(), dDate.toISOString(), `'deceased' = '${result[0].deceased}' was expected to equal '${dDate.toISOString()}'`);
+      assert.strictEqual(new Date(result[0].deceased).getTime() - bDate.getTime(), 1, '\'deceased\' was expected to equal \'bDate.getTime() + 1\''); // eslint-disable-line eqeqeq
+      assert.strictEqual(JSON.stringify(result[0].tc), JSON.stringify(doug.tc), '\'tc\' expected to be equal to \'TestClass\'');
+    });
+  });
+
+  describe('Pre-load data', () => {
+    const samples = 5;
+    let data = {};
+
+    beforeEach(() => {
+      data = {};
+
+      for (let i = 0; i < samples; i++)
+        data[i] = { id: i, age: 10 + i, born: 2011 - i };
+    });
+
+    after(() => {
+      console.log(`\n`);
+    });
+
+    it('Pre-loading works', async () => {
+      const preLoadService = 'preloadData';
+      const app = feathers()
+        .use(preLoadService, service({ name: preLoadService, store: data }));
+      let myService = app.service(preLoadService);
+
+      let result = {};
+      try {
+        result = await myService.getEntries();
+      } catch (err) {
+        assert.strictEqual(false, true, 'Error getting all entries');
+      }
+
+      assert.strictEqual(result.length, Object.keys(data).length, `length does not match (${result.length} /= ${Object.keys(data).length})`);
+
+      result.forEach((item, ix) => {
+        assert.strictEqual(item.id, data[ix].id, `'id' does not match (${item.id} != ${data[ix].id})`);
+        assert.strictEqual(item.age, data[ix].age, `'age' does not match (${item.age} != ${data[ix].age})`);
+        assert.strictEqual(item.born, data[ix].born, `'born' does not match (${item.born} != ${data[ix].born})`);
+      });
+
+      return myService.create({ age: 59, born: 1962 })
+        .then(item => {
+          // As we pre-loaded ids from 0-4 we pre-suppose (all numbers) the next in line ought to be 5...
+          assert.strictEqual(item.id, 5, `'id' does not match (${item.id} != 5)`);
+          assert.strictEqual(item.age, 59, `'age' does not match (${item.age} != 59)`);
+          assert.strictEqual(item.born, 1962, `'born' does not match (${item.born} != 1962)`);
+           })
+
+    });
+
   });
 
   testSuite(app, errors, 'people');

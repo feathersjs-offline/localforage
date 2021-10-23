@@ -1,20 +1,20 @@
 # \@feathersjs-offline/feathers-localforage
 
-[![npm version](https://img.shields.io/npm/v/@feathersjs-offline/feathers-localforage.svg?style=flat-square)](https://www.npmjs.com/package/@feathersjs-offline/feathers-localforage)
-[![Build Status](https://img.shields.io/github/workflow/status/feathersjs-offline/feathers-localforage/CI)](https://github.com/feathersjs-offline/feathers-localforage/actions)
-[![Dependency Status](https://img.shields.io/david/feathersjs-offline/feathers-localforage?path=packages%2Ffeathers-localforage&style=flat-square)](https://david-dm.org/@feathersjs-offline/feathers-localforage)
-[![Known Vulnerabilities](https://snyk.io/test/github/feathersjs-offline/feathers-localforage/badge.svg)](https://snyk.io/test/github/feathersjs-offline/feathers-localforage)
-[![Maintainability](https://api.codeclimate.com/v1/badges/22509121003eefaf32c5/maintainability)](https://codeclimate.com/github/feathersjs-offline/feathers-localforage/maintainability)
+[![npm version](https://img.shields.io/npm/v/@feathersjs-offline/localforage.svg?style=flat-square)](https://www.npmjs.com/package/@feathersjs-offline/localforage)
+[![Build Status](https://img.shields.io/github/workflow/status/feathersjs-offline/localforage/CI)](https://github.com/feathersjs-offline/localforage/actions)
+[![Dependency Status](https://img.shields.io/david/feathersjs-offline/localforage?path=packages%2Flocalforage&style=flat-square)](https://david-dm.org/@feathersjs-offline/localforage)
+[![Known Vulnerabilities](https://snyk.io/test/github/feathersjs-offline/localforage/badge.svg)](https://snyk.io/test/github/feathersjs-offline/localforage)
+[![Maintainability](https://api.codeclimate.com/v1/badges/22509121003eefaf32c5/maintainability)](https://codeclimate.com/github/feathersjs-offline/localforage/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/22509121003eefaf32c5/test_coverage)](https://codeclimate.com/github/feathersjs-offline/feathers-localforage/test_coverage)
-[![Download Status](https://img.shields.io/npm/dm/@feathersjs-offline/feathers-localforage)](https://www.npmjs.com/package/@feathersjs-offline/feathers-localforage)
+[![Download Status](https://img.shields.io/npm/dm/@feathersjs-offline/localforage)](https://www.npmjs.com/package/@feathersjs-offline/localforage)
 
-[@featherjs-offline/feathers-localforage](https://github.com/feathersjs-offline/feathers-localforage/) is a database service adapter that wraps `localForage` which enables usage of `IndexedDB`, `WebSQL`, and `LocalStorage`.
+[@featherjs-offline/localforage](https://github.com/feathersjs-offline/localforage/) is a database service adapter wrapping `localForage` that persists to either `IndexedDB`, `WebSQL`, or `LocalStorage` making it very useful for mobile and offline-first applications with the additional ability to seamlessly handle Blobs, TypedArrays, and other JS objects.
 
 ```bash
-$ npm install --save feathers-localforage
+$ npm install --save @feathersjs-offline/localforage
 ```
 
-> __Important:__ `@feathersjs-offloine/feathers-localforage` implements the [Feathers Common database adapter API](https://docs.feathersjs.com/api/databases/common.html) and [querying syntax](https://docs.feathersjs.com/api/databases/querying.html).
+> __Important:__ `@feathersjs-offline/localforage` implements the [Feathers Common database adapter API](https://docs.feathersjs.com/api/databases/common.html) and [querying syntax](https://docs.feathersjs.com/api/databases/querying.html).
 
 
 ## API
@@ -24,27 +24,39 @@ $ npm install --save feathers-localforage
 Returns a new service instance initialized with the given options.
 
 ```js
-const service = require('@feathersjs-offline/feathers-localforage');
+const service = require('@feathersjs-offline/localforage');
 
 app.use('/messages', service({
-  storage: window.localStorage || AsyncStorage
+  storage: ['IndexedDB', 'localStorage']
 }));
 app.use('/messages', service({ storage, id, startId, name, store, paginate }));
 ```
 
 __Options:__
 
-- `storage` (**required**) - The local storage engine. You can pass in the browsers `window.localStorage`, React Native's `AsyncStorage` or a NodeJS localstorage module.
-- `throttle` (*optional*, default `200`) - The minimum time (ms) before in-memory data is written to `storage`. Data is only written if changed since last write.
+- `storage` (*optional*, default: `'INDEXEDDB'`) - The storage backend. Must be one or more of `'INDEXEDDB'`, `'WEBSQL'`, or `'LOCALSTORAGE'`. The adapter will use the same sequence as fall-back if the desired storage type is not supported on the actual device. Alternatively, you can supply an array of storage backends determining the priority of your choice.
+- `version` (*optional*, default: `1.0`) - `localforage` driver version to use. Currently only `1.0` exists.
+- `size` (*optional*, default `4980736`) - The maximum database size required. Default DB size is _JUST UNDER_ 5MB, as it's the highest size we can use without a prompt in any browser.
 - `id` (*optional*, default: `'id'`) - The name of the id field property.
-- `startId` (*optional*, default: `0`) - An id number to start with that will be incremented for new record.
 - `name` (*optional*, default: `'feathers'`) - The key to store data under in local or async storage.
 - `store` (*optional*) - An object with id to item assignments to pre-initialize the data store.
+- `dates` (*optional*, default `false`) - Convert ISO-formatted date strings to `Date` objects in result sets.
 - `events` (*optional*) - A list of [custom service events](https://docs.feathersjs.com/api/events.html#custom-events) sent by this service.
 - `paginate` (*optional*) - A [pagination object](https://docs.feathersjs.com/api/databases/common.html#pagination) containing a `default` and `max` page size.
 - `whitelist` (*optional*) - A list of additional query parameters to allow.
 - `multi` (*optional*) - Allow `create` with arrays and `update` and `remove` with `id` `null` to change multiple items. Can be `true` for all methods or an array of allowed methods (e.g. `[ 'remove', 'create' ]`).
-- `reuseKeys` (*optional*, default: `false`) Allow duplicate keys i.e. last definition wins. Mostly useful for demonstration and testing purposes.
+- `reuseKeys` (*optional*, default: `false`) Allow duplicate keys (see `name`) i.e. last definition wins. Mostly useful for demonstration and testing purposes.
+
+## Storing Blobs, TypedArrays, and other JS objects
+
+As this is an implementation on top of `localForage` you can store any type in `@feathersjs-offline/localforage`; you aren't limited to strings like in `localStorage`. Even if `localStorage` is your storage backend, `@feathersjs-offline/localforage` automatically does JSON.parse() and JSON.stringify() when getting/setting values.
+
+`feathers-localforage` supports storing all native JS objects that can be serialized to JSON, as well as ArrayBuffers, Blobs, and TypedArrays. Check the [localForage API docs](https://localforage.github.io/localForage/#data-api-setitem) for a full list of types supported. In addition, setting the option `dates` to `true` will make sure any ISO-formatted dates in your results will in fact be date objects and not text strings.
+
+> All types are supported in every storage backend, though storage limits in `localStorage` make storing many large Blobs impossible.
+
+We default to `indexedDB` if available and fall-back to `localStorage` as a last resort.
+
 
 ## Example
 
@@ -53,11 +65,11 @@ See the [clients](https://docs.feathersjs.com/api/client.html) chapter for more 
 ### Browser
 
 ```html
-<script type="text/javascript" src="//unpkg.com/@feathersjs/client@^3.0.0/dist/feathers.js"></script>
-<script type="text/javascript" src="//unpkg.com/@feathersjs-offline/feathers-localforage@^0.1.0/dist/feathers-localforage.js"></script>
+<script type="text/javascript" src="//unpkg.com/@feathersjs/client@^4.5.11/dist/feathers.js"></script>
+<script type="text/javascript" src="//unpkg.com/@feathersjs-offline/localforage@^1.0.0/dist/localforage.js"></script>
 <script type="text/javascript">
-  var service = feathers.localforage({
-    storage: window.localStorage
+  var service = feathersjsOfflineLocalforage.init({
+    storage: ['indexeddb', 'websql', 'localStorage']
   });
   var app = feathers().use('/messages', service);
 
@@ -73,35 +85,8 @@ See the [clients](https://docs.feathersjs.com/api/client.html) chapter for more 
 </script>
 ```
 
-### React Native
-
-```bash
-$ npm install @feathersjs/feathers @feathersjs-offline/feathers-localforage --save
-```
-
-```js
-import React from 'react-native';
-import feathers from '@feathersjs/feathers';
-import localforage from '@feeathers-offline/feathers-localforage';
-
-const { AsyncStorage } = React;
-
-const app = feathers()
-  .use('/messages', localforage({ storage: AsyncStorage }));
-
-const messages = app.service('messages');
-
-messages.on('created', function(message) {
-  console.log('Someone created a message', message);
-});
-
-messages.create({
-  text: 'Message from React Native'
-});
-```
-
 ## License
 
-Copyright (c) 2021 Feathers
+Copyright (c) 2021 by Feathers
 
 Licensed under the [MIT license](LICENSE).
