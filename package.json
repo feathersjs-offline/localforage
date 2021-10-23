@@ -45,21 +45,12 @@
     "node": ">= 11"
   },
   "scripts": {
-    "add-dist": "npm run clean && npm run build && git add dist/ --force && git commit -am \"Updating dist\"",
-    "clean": "shx rm -rf dist/ coverage/ lib/ /node_modules/ .nyc_output/ && shx mkdir -p dist",
-    "build": "npm run clean && npm run webpack && npm run webpack:production",
-    "webpack": "parallel-webpack",
-    "publish": "git push origin --tags && npm run changelog && git push origin",
-    "changelog": "github_changelog_generator && git add CHANGELOG.md && git commit -am \"Updating changelog\"",
-    "release:patch": "npm run add-dist && npm version patch && npm publish",
-    "release:minor": "npm run add-dist && npm version minor && npm publish",
-    "release:major": "npm run add-dist && npm version major && npm publish",
-    "mocha": "nyc mocha --config ./.mocharc.ts.json --exit  test/*.test.js",
     "prepublish": "npm run compile",
     "compile": "shx rm -rf lib/ && tsc",
     "unit": "npm run mocha",
-    "test": "npm run compile && npm run mocha"
-  },
+    "test": "npm run compile && npm run mocha",
+    "mocha": "nyc mocha --config ../../.mocharc.ts.json --exit --recursive test/**.test.js test/**/*.test.js"
+ },
   "dependencies": {
     "@feathersjs/adapter-commons": "^4.5.11",
     "@feathersjs/commons": "^4.5.11",
