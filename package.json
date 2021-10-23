@@ -49,7 +49,7 @@
     "compile": "shx rm -rf lib/ && tsc",
     "unit": "npm run mocha",
     "test": "npm run compile && npm run mocha",
-    "mocha": "nyc mocha --config ../../.mocharc.ts.json --exit --recursive test/**.test.js test/**/*.test.js"
+    "mocha": "nyc mocha --config ./.mocharc.ts.json --exit --recursive test/**.test.js test/**/*.test.js"
  },
   "dependencies": {
     "@feathersjs/adapter-commons": "^4.5.11",
