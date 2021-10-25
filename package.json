@@ -1,6 +1,6 @@
 {
   "name": "@feathersjs-offline/localforage",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A FeathersJS client side service based on localforage that persists to IndexedDB, WebSQL, or LocalStorage",
   "keywords": [
     "feathers",
@@ -50,7 +50,7 @@
     "unit": "npm run mocha",
     "test": "npm run compile && npm run mocha",
     "mocha": "nyc mocha --config ./.mocharc.ts.json --exit --recursive test/**.test.js test/**/*.test.js"
- },
+  },
   "dependencies": {
     "@feathersjs/adapter-commons": "^4.5.11",
     "@feathersjs/commons": "^4.5.11",

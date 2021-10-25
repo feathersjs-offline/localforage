@@ -85,147 +85,213 @@ describe('Feathers LocalForage Service', () => {
     }));
 
   describe('Specific adapter tests', () => {
-    after(done => {
-      console.log('\n');
-      done();
-    });
 
-    it('is CommonJS compatible', () => {
-      assert.strictEqual(typeof require('../src'), 'function');
-    });
+    describe('Basic tests', () => {
 
-    it('throws on name reuse', done => {
-      const name = 'test-storage-5';
-
-      assert.throws(() => {
-        app.use('service1', service({ name }));
-        app.use('service2', service({ name }));
+      after(() => {
+        console.log('\n');
       });
 
-      done();
-    });
+      it('is CommonJS compatible', () => {
+        assert.strictEqual(typeof require('../src'), 'function');
+      });
 
-    it('accepts name reuse with reuseKeys option set', done => {
-      const name = 'test-storage-6';
+      it('throws on name reuse', done => {
+        const name = 'test-storage-5';
 
-      let flag = true;
-      try {
-        app.use('service1', service({ name }));
-        app.use('service2', service({ name, reuseKeys: true }));
-      } catch (err) {
-        flag = false;
-      }
-      assert.strictEqual(flag, true);
+        assert.throws(() => {
+          app.use('service1', service({ name }));
+          app.use('service2', service({ name }));
+        });
 
-      done();
-    });
+        done();
+      });
 
-    it('accepts name reuse with reuseKeys option set + contents', async () => {
-      const name = 'test-storage-7';
+      it('accepts name reuse with reuseKeys option set', done => {
+        const name = 'test-storage-6';
 
-      let flag = null;
-      app.use('service3', service({ name }));
-      app.service('service3').create({ name: 'Bond', age: 58 })
-        .then(() => app.use('service4', service({ name, reuseKeys: true })))
-        .then(() => flag = true)
-        .then(() => {
-          assert.strictEqual(flag, true, `Reuse with flag + contents failed.`);
-        })
-        .catch(err => {
-          assert.strictEqual(false, true, `Reuse with flag + contents failed. err=${err.name}, message=${err.message}`);
+        let flag = true;
+        try {
+          app.use('service1', service({ name }));
+          app.use('service2', service({ name, reuseKeys: true }));
+        } catch (err) {
           flag = false;
-        });
-    });
+        }
+        assert.strictEqual(flag, true);
 
-    it('works with default options', () => {
-      app.use('service1', service());
-      const myService = app.service('service1');
-      return myService.create({ id: 1, name: 'Bond' })
-        .catch(err => {
-          assert.strictEqual(true, false, `ERROR: ${err.name}, ${err.message}`);
-        });
-    });
+        done();
+      });
 
-    it('special debug (_local)', () => {
-      app.use('service2', service({ name: 'service2_local' }));
-      const myService = app.service('service2');
-      return myService.create({ id: 1, name: 'Bond' })
-        .catch(err => {
-          assert.strictEqual(true, false, `ERROR: ${err.name}, ${err.message}`);
-        });
-    });
+      it('accepts name reuse with reuseKeys option set + contents', async () => {
+        const name = 'test-storage-7';
 
-    it('special debug (_queue)', () => {
-      app.use('service3', service({ name: 'service3_queue' }));
-      const myService = app.service('service3');
-      return myService.create({ id: 1, name: 'Bond' })
-        .catch(err => {
-          assert.strictEqual(true, false, `ERROR: ${err.name}, ${err.message}`);
-        });
-    });
+        let flag = null;
+        app.use('service3', service({ name }));
+        app.service('service3').create({ name: 'Bond', age: 58 })
+          .then(() => app.use('service4', service({ name, reuseKeys: true })))
+          .then(() => flag = true)
+          .then(() => {
+            assert.strictEqual(flag, true, `Reuse with flag + contents failed.`);
+          })
+          .catch(err => {
+            assert.strictEqual(false, true, `Reuse with flag + contents failed. err=${err.name}, message=${err.message}`);
+            flag = false;
+          });
+      });
 
-    it('get unknown id throws', async () => {
-      app.use('service4', service({ name: 'service4' }));
-      const myService = app.service('service4');
-      let flag = null;
-      try {
-        await myService.create({ id: 1, name: 'Bond' })
-        await myService.get(99);
-        flag = true;
-      } catch (err) {
-        flag = false;
-      }
-      assert.strictEqual(flag, false, 'Did not throw as expected');
-    });
+      it('works with default options', () => {
+        app.use('service1', service());
+        const myService = app.service('service1');
+        return myService.create({ id: 1, name: 'Bond' })
+          .catch(err => {
+            assert.strictEqual(true, false, `ERROR: ${err.name}, ${err.message}`);
+          });
+      });
+
+      it('special debug (_local)', () => {
+        app.use('service2', service({ name: 'service2_local' }));
+        const myService = app.service('service2');
+        return myService.create({ id: 1, name: 'Bond' })
+          .catch(err => {
+            assert.strictEqual(true, false, `ERROR: ${err.name}, ${err.message}`);
+          });
+      });
+
+      it('special debug (_queue)', () => {
+        app.use('service3', service({ name: 'service3_queue' }));
+        const myService = app.service('service3');
+        return myService.create({ id: 1, name: 'Bond' })
+          .catch(err => {
+            assert.strictEqual(true, false, `ERROR: ${err.name}, ${err.message}`);
+          });
+      });
 
 
-    it('create with id set', async () => {
-      const name = 'test-storage-8';
-      app.use('service5', service({ name }));
-      const myService = app.service('service5');
+      it('get unknown id throws', async () => {
+        app.use('service5', service({ name: 'service4' }));
+        const myService = app.service('service4');
+        let flag = null;
+        try {
+          await myService.create({ id: 1, name: 'Bond' })
+          await myService.get(99);
+          flag = true;
+        } catch (err) {
+          flag = false;
+        }
+        assert.strictEqual(flag, false, 'Did not throw as expected');
+      });
 
-      const data = { id: '123', name: 'David', age: 32 };
-      let result = {};
-      try {
-        result = await myService.create(data, {});
-      } catch (err) {
-        assert.strictEqual(false, true, `Error creating item with id set. err=${err.name}, ${err.message}`);
-      }
 
-      assert.strictEqual(result.id, data.id, 'Strange difference on "id"');
-      assert.strictEqual(result.name, data.name, 'Strange difference on "name"');
-      assert.strictEqual(result.age, data.age, 'Strange difference on "age"');
-      result = await myService.remove(data.id, {});
-    });
-  });
+      it('create with id set', async () => {
+        const name = 'test-storage-8';
+        app.use('service6', service({ name }));
+        const myService = app.service('service5');
 
-  describe('getEntries', () => {
-    let myService = null;
-    const serviceName = 'service6';
-    const name = 'test-storage-9';
-    let doug = {};
-    let idProp = 'unknown??';
+        const data = { id: '123', name: 'David', age: 32 };
+        let result = {};
+        try {
+          result = await myService.create(data, {});
+        } catch (err) {
+          assert.strictEqual(false, true, `Error creating item with id set. err=${err.name}, ${err.message}`);
+        }
 
-    after(done => {
-      console.log('\n');
-      done();
-    });
-
-    beforeEach(async () => {
-      app.use(serviceName, service({ name, reuseKeys: true }))
-      myService = app.service(serviceName);
-      idProp = myService.id;
-      doug = await myService.create({
-        name: 'Doug',
-        age: 32
+        assert.strictEqual(result.id, data.id, 'Strange difference on "id"');
+        assert.strictEqual(result.name, data.name, 'Strange difference on "name"');
+        assert.strictEqual(result.age, data.age, 'Strange difference on "age"');
+        result = await myService.remove(data.id, {});
       });
     });
 
-    afterEach(async () => {
-      try {
-        await myService.remove(doug[idProp]);
-      } catch (err) {
-        throw new Error(`Unexpectedly failed to remove 'doug'! err=${err.name}, ${err.message} id=${doug[idProp]}, idProp=${idProp}`);
+    describe('Check driver settings', () => {
+      let ix = 0;
+
+      after(() => {
+        console.log('\n');
+      });
+
+      function checkValidDrivers(drivers) {
+        return drivers.forEach(driver => checkValidDriver(driver));
+      }
+
+      function checkValidDriver(driver) {
+        it(`valid driver ${JSON.stringify(driver)} works`, () => {
+          let myService = null;
+          let bWorked = null;
+          try {
+            app.use(`service4-${driver}${++ix}`, service({ name: `service4-${driver}${ix}`, storage: driver }));
+            myService = app.service(`service4-${driver}${ix}`);
+            myService.create({ id: 1, name: 'Bond' });
+            bWorked = true;
+          } catch (err) {
+            bWorked = false;
+            assert.strictEqual(true, false, `Valid driver ${JSON.stringify(driver)} failed with ERROR: ${err.name}, ${err.message}`);
+          }
+          assert.strictEqual(bWorked, true, `Valid driver ${JSON.stringify(driver)} unexpectedly did not work!`);
+        });
+      }
+
+      checkValidDrivers([
+        'IndexedDB',
+        'WebSQL',
+        'LocalStorage',
+        ['IndexedDB'],
+        ['IndexedDB', 'WebSQL'],
+        ['IndexedDB', 'WebSQL', 'LocalStorage'],
+        ['WebSQL'],
+        ['WebSQL', 'LocalStorage'],
+        ['WebSQL', 'LocalStorage', 'IndexedDB'],
+        ['LocalStorage'],
+        ['LocalStorage', 'IndexedDB'],
+        ['LocalStorage', 'IndexedDB', 'WebSQL'],
+      ]);
+
+      function checkInvalidDriver(driver) {
+        it(`invalid driver '${JSON.stringify(driver)}' aborts`, () => {
+          let myService = null;
+          let bWorked = null;
+          try {
+            app.use(`service4-${driver}${++ix}`, service({ name: `service4-${driver}${ix}`, storage: driver }));
+            myService = app.service(`service4-${driver}${ix}`);
+            myService.create({ id: 1, name: 'Bond' });
+            bWorked = true;
+          } catch (err) {
+            bWorked = false;
+            assert.strictEqual(err.name, 'NotAcceptable', `Invalid driver ${JSON.stringify(driver)} threw wrong error: ${err.name}, ${err.message}`);
+          }
+          assert.strictEqual(bWorked, false, `Invalid driver ${JSON.stringify(driver)} unexpectedly worked!`);
+        });
+      }
+
+      [ 'xxS', [ 'XXS' ], [ 'XXS', 'IndexedDB'], [ 'IndexedDB', 'XXS'] ].forEach(d => checkInvalidDriver(d));
+
+    });
+    
+    describe('getEntries', () => {
+      let myService = null;
+      const serviceName = 'service6';
+      const name = 'test-storage-9';
+      let doug = {};
+      let idProp = 'unknown??';
+      
+      after(() => {
+        console.log('\n');
+      });
+        
+      beforeEach(async () => {
+        app.use(serviceName, service({ name, reuseKeys: true }))
+        myService = app.service(serviceName);
+        idProp = myService.id;
+        doug = await myService.create({
+          name: 'Doug',
+          age: 32
+        });
+      });
+      
+      afterEach(async () => {
+        try {
+          await myService.remove(doug[idProp]);
+        } catch (err) {
+          throw new Error(`Unexpectedly failed to remove 'doug'! err=${err.name}, ${err.message} id=${doug[idProp]}, idProp=${idProp}`);
       }
     });
 
@@ -236,7 +302,7 @@ describe('Feathers LocalForage Service', () => {
       } catch (err) {
         assert.strictEqual(false, true, 'Error getting all entries');
       }
-
+      
       assert.strictEqual(result.length, 1, 'Length was expected to be 1');
       assert.strictEqual(result[0].name, doug.name, 'Expected "name" to be "Doug"');
       assert.strictEqual(result[0].age, doug.age, 'Strange difference on "age"');
@@ -255,7 +321,7 @@ describe('Feathers LocalForage Service', () => {
       assert.strictEqual(result[0].age, doug.age, 'Strange difference on "age"');
     });
   });
-
+  
   describe('Types are preserved', () => {
     const serviceName = 'types';
     const bDate = new Date('2001-09-11T09:00:00.000Z');
@@ -266,16 +332,15 @@ describe('Feathers LocalForage Service', () => {
       dummy() {
       }
     }
-
-    after(done => {
+    
+    after(() => {
       console.log('\n');
-      done();
     });
 
     beforeEach(async () => {
       doug = {};
     });
-
+    
     afterEach(async () => {
       try {
         await sService.remove(doug[idProp]);
@@ -283,11 +348,11 @@ describe('Feathers LocalForage Service', () => {
         throw new Error(`Unexpectedly failed to remove 'doug'! err=${err.name}, ${err.message} id=${doug[idProp]}, idProp=${idProp}`);
       }
     });
-
+    
     it('types ok (dates set to \'true\')', async () => {
       const app = feathers()
         .use(serviceName, service({ id: idProp, name: serviceName, reuseKeys: true, dates: true }));
-      sService = app.service(serviceName);
+        sService = app.service(serviceName);
       doug = await sService.create({
         [idProp]: 0,
         name: 'Doug',
@@ -295,14 +360,14 @@ describe('Feathers LocalForage Service', () => {
         birthdate: bDate,
         tc: new TestClass()
       });
-
+      
       let result = {};
       try {
         result = await sService.getEntries();
       } catch (err) {
         assert.strictEqual(false, true, 'Error getting all entries');
       }
-
+      
       assert.strictEqual(typeof result[0].name, 'string', '\'name\' was expected to be of type \'string\'');
       assert.strictEqual(result[0].name, 'Doug', '\'name\' was expected to equal \'Doug\'');
       assert.strictEqual(typeof result[0].age, 'number', '\'age\' was expected to be of type \'number\'');
@@ -312,10 +377,10 @@ describe('Feathers LocalForage Service', () => {
       assert.strictEqual(result[0].birthdate - bDate, 0, '\'birthdate\' was expected to equal \'bDate\''); // eslint-disable-line eqeqeq
       assert.strictEqual(JSON.stringify(result[0].tc), JSON.stringify(doug.tc), '\'tc\' expected to be equal to \'TestClass\'');
     });
-
+    
     it('types ok (dates set to \'false\' (default))', async () => {
       const app = feathers()
-        .use(serviceName, service({ id: idProp, name: serviceName, reuseKeys: true }));
+      .use(serviceName, service({ id: idProp, name: serviceName, reuseKeys: true }));
       sService = app.service(serviceName);
       const dDate = new Date(bDate.getTime() + 1);
       doug = await sService.create({
@@ -332,7 +397,7 @@ describe('Feathers LocalForage Service', () => {
       } catch (err) {
         assert.strictEqual(false, true, 'Error getting all entries');
       }
-
+      
       assert.strictEqual(typeof result[0].name, 'string', '\'name\' was expected to be of type \'string\'');
       assert.strictEqual(result[0].name, 'Doug', '\'name\' was expected to equal \'Doug\'');
       assert.strictEqual(typeof result[0].age, 'number', '\'age\' was expected to be of type \'number\'');
@@ -350,39 +415,39 @@ describe('Feathers LocalForage Service', () => {
   describe('Pre-load data', () => {
     const samples = 5;
     let data = {};
-
+    
     beforeEach(() => {
       data = {};
-
+      
       for (let i = 0; i < samples; i++)
-        data[i] = { id: i, age: 10 + i, born: 2011 - i };
+      data[i] = { id: i, age: 10 + i, born: 2011 - i };
     });
-
+    
     after(() => {
       console.log(`\n`);
     });
-
+    
     it('Pre-loading works', async () => {
       const preLoadService = 'preloadData';
       const app = feathers()
-        .use(preLoadService, service({ name: preLoadService, store: data }));
+      .use(preLoadService, service({ name: preLoadService, store: data }));
       let myService = app.service(preLoadService);
-
+      
       let result = {};
       try {
         result = await myService.getEntries();
       } catch (err) {
         assert.strictEqual(false, true, 'Error getting all entries');
       }
-
+      
       assert.strictEqual(result.length, Object.keys(data).length, `length does not match (${result.length} /= ${Object.keys(data).length})`);
-
+      
       result.forEach((item, ix) => {
         assert.strictEqual(item.id, data[ix].id, `'id' does not match (${item.id} != ${data[ix].id})`);
         assert.strictEqual(item.age, data[ix].age, `'age' does not match (${item.age} != ${data[ix].age})`);
         assert.strictEqual(item.born, data[ix].born, `'born' does not match (${item.born} != ${data[ix].born})`);
       });
-
+      
       return myService.create({ age: 59, born: 1962 })
         .then(item => {
           // As we pre-loaded ids from 0-4 we pre-suppose (all numbers) the next in line ought to be 5...
@@ -390,10 +455,11 @@ describe('Feathers LocalForage Service', () => {
           assert.strictEqual(item.age, 59, `'age' does not match (${item.age} != 59)`);
           assert.strictEqual(item.born, 1962, `'born' does not match (${item.born} != 1962)`);
            })
-
+           
     });
 
   });
+});
 
   testSuite(app, errors, 'people');
   testSuite(app, errors, 'people-customid', 'customid');
