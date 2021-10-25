@@ -5,7 +5,7 @@
 [![Known Vulnerabilities](https://snyk.io/test/github/feathersjs-offline/localforage/badge.svg)](https://snyk.io/test/github/feathersjs-offline/localforage)
 [![Maintainability](https://api.codeclimate.com/v1/badges/29bdb5362c208a740016/maintainability)](https://codeclimate.com/github/feathersjs-offline/localforage/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/29bdb5362c208a740016/test_coverage)](https://codeclimate.com/github/feathersjs-offline/localforage/test_coverage)
-[![Download Status](https://img.shields.io/npm/dm/feathersjs-offline/localforage)](https://www.npmjs.com/package/feathersjs-offline/localforage)
+[![Download Status](https://img.shields.io/npm/dm/@feathersjs-offline/localforage)](https://www.npmjs.com/package/@feathersjs-offline/localforage)
 
 [@featherjs-offline/localforage](https://github.com/feathersjs-offline/localforage/) is a database service adapter wrapping `localForage` that persists to either `IndexedDB`, `WebSQL`, or `LocalStorage` making it very useful for mobile and offline-first applications with the additional ability to seamlessly handle Blobs, TypedArrays, and other JS objects.
 
