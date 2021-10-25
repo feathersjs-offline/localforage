@@ -71,7 +71,7 @@
     "chai": "^4.3.4",
     "core-js": "^2.6.12",
     "cross-env": "^7.0.3",
-    "eslint-config-standard": "^13.0.1",
+    "eslint-config-standard": "^16.0.3",
     "localstorage-memory": "^1.0.3",
     "mocha": "^9.0.0",
     "npm-check-updates": "^11.0.0",
