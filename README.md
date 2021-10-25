@@ -1,4 +1,4 @@
-# \@feathersjs-offline/feathers-localforage
+# \@feathersjs-offline/localforage
 
 [![npm version](https://img.shields.io/npm/v/@feathersjs-offline/localforage.svg?style=flat-square)](https://www.npmjs.com/package/@feathersjs-offline/localforage)
 [![Build Status](https://img.shields.io/github/workflow/status/feathersjs-offline/localforage/CI)](https://github.com/feathersjs-offline/localforage/actions)
