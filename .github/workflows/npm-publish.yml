@@ -36,7 +36,7 @@ jobs:
           node-version: 12
           registry-url: 'https://registry.npmjs.org/'
 
-      - run: pm publish --access public
+      - run: npm publish --access public
 
       # Publish to GitHub Packages
       - uses: actions/setup-node@v2
