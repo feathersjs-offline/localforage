@@ -1,8 +1,8 @@
 const adapterTests = require('@feathersjs/adapter-tests');
 const errors = require('@feathersjs/errors');
 const feathers = require('@feathersjs/feathers');
-const localStorage = require('localstorage-memory');
-global.localStorage = localStorage;
+const LocalStorage = require('./utilities/local-storage');
+global.localStorage = new LocalStorage();
 
 const assert = require('assert');
 

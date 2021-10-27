@@ -24,7 +24,7 @@ const validDrivers = {
 
 // Create the service.
 class Service extends AdapterService {
-  constructor (options = {}) {
+  constructor(options = {}) {
     super(_.extend({
       id: 'id',
       matcher: sift,
@@ -49,7 +49,7 @@ class Service extends AdapterService {
       size: this._storageSize,
       version: this._version,
       storeName: this._storageKey,
-      description: 'Created by @feathersjs-offline/feathers-localforage'
+      description: 'Created by @feathersjs-offline/localforage'
     });
 
     this.checkStoreName();
@@ -62,7 +62,7 @@ class Service extends AdapterService {
     this.ready();
   }
 
-  sanitizeParameters (options) {
+  sanitizeParameters(options) {
     this._storageKey = options.name || 'feathers';
 
     let storage = this.options.storage || 'LOCALSTORAGE';
@@ -82,7 +82,7 @@ class Service extends AdapterService {
     this._id = options.startId || 0;
   }
 
-  checkStoreName () {
+  checkStoreName() {
     if (usedKeys.indexOf(this._storageKey) === -1) {
       usedKeys.push(this._storageKey);
     } else {
@@ -105,12 +105,12 @@ class Service extends AdapterService {
       )]);
   }
 
-  getModel () {
+  getModel() {
     return this._storage;
   }
 
-  async getEntries (params = {}) {
-    debug(`_getEntries(${JSON.stringify(params)})`+this._debugSuffix);
+  async getEntries(params = {}) {
+    debug(`getEntries(${JSON.stringify(params)})` + this._debugSuffix);
     const { query } = this.filterQuery(params);
 
     return this._find(Object.assign({}, params, {
@@ -129,8 +129,9 @@ class Service extends AdapterService {
     return id;
   }
 
-  async _find (params = {}) {
-    debug(`_find(${JSON.stringify(params)})`+this._debugSuffix);
+
+  async _find(params = {}) {
+    debug(`_find(${JSON.stringify(params)})` + this._debugSuffix);
     const self = this;
     const { query, filters, paginate } = self.filterQuery(params);
     let keys = await self.getModel().keys();
@@ -188,28 +189,28 @@ class Service extends AdapterService {
   }
 
   async _get(id, params = {}) {
-    debug(`_get(${id}, ${JSON.stringify(params)})`+this._debugSuffix);
+    debug(`_get(${id}, ${JSON.stringify(params)})` + this._debugSuffix);
     const self = this;
     const { query } = this.filterQuery(params);
 
     return this.getModel().getItem(String(id), null)
       .then(item => {
-        if (item === null) throw new errors.NotFound(`No match for query=${JSON.stringify(query)}`+this._debugSuffix);
+        if (item === null) throw new errors.NotFound(`No match for query=${JSON.stringify(query)}` + this._debugSuffix);
 
         const match = self.options.matcher(query)(item);
         if (match) {
           return item;
         } else {
-          throw new errors.NotFound(`No match for query=${JSON.stringify(query)}`+this._debugSuffix);
+          throw new errors.NotFound(`No match for query=${JSON.stringify(query)}` + this._debugSuffix);
         }
       })
-      .catch(err => { throw new errors.NotFound(`No record found for id '${id}', err=${err.message}`+this._debugSuffix); })
+      .catch(err => { throw new errors.NotFound(`No record found for id '${id}', err=${err.message}` + this._debugSuffix); })
       .then(select(params, this.id))
       .then(stringsToDates(this._dates));
   }
 
-  async _findOrGet (id, params = {}) {
-    debug(`_findOrGet(${id}, ${JSON.stringify(params)})`+this._debugSuffix);
+  async _findOrGet(id, params = {}) {
+    debug(`_findOrGet(${id}, ${JSON.stringify(params)})` + this._debugSuffix);
     if (id === null) {
       return this._find(_.extend({}, params, {
         paginate: false
@@ -219,8 +220,8 @@ class Service extends AdapterService {
     return this._get(id, params)
   }
 
-  async _create (raw, params = {}) {
-    debug(`_create(${JSON.stringify(raw)}, ${JSON.stringify(params)})`+this._debugSuffix);
+  async _create(raw, params = {}) {
+    debug(`_create(${JSON.stringify(raw)}, ${JSON.stringify(params)})` + this._debugSuffix);
     const self = this;
 
     const addId = item => {
@@ -248,8 +249,8 @@ class Service extends AdapterService {
     return Array.isArray(data) ? Promise.all(data.map(doOne)) : doOne(data);
   }
 
-  async _patch (id, data, params = {}) {
-    debug(`_patch(${id}, ${JSON.stringify(data)}, ${JSON.stringify(params)})`+this._debugSuffix);
+  async _patch(id, data, params = {}) {
+    debug(`_patch(${id}, ${JSON.stringify(data)}, ${JSON.stringify(params)})` + this._debugSuffix);
     const self = this;
     const items = await this._findOrGet(id, params);
 
@@ -269,8 +270,8 @@ class Service extends AdapterService {
     }
   }
 
-  async _update (id, data, params = {}) {
-    debug(`_update(${id}, ${JSON.stringify(data)}, ${JSON.stringify(params)})`+this._debugSuffix);
+  async _update(id, data, params = {}) {
+    debug(`_update(${id}, ${JSON.stringify(data)}, ${JSON.stringify(params)})` + this._debugSuffix);
     const item = await this._findOrGet(id, params);
     id = item[this.id];
 
@@ -289,13 +290,13 @@ class Service extends AdapterService {
     return item;
   }
 
-  async _remove (id, params = {}) {
-    debug(`_remove(${id}, ${JSON.stringify(params)})`+this._debugSuffix);
+  async _remove(id, params = {}) {
+    debug(`_remove(${id}, ${JSON.stringify(params)})` + this._debugSuffix);
     const items = await this._findOrGet(id, params);
     const self = this;
     if (Array.isArray(items)) {
       return Promise.all(items.map(item => this.__removeItem(item), null))
-          .then(select(params, this.id));
+        .then(select(params, this.id));
     } else {
       return this.__removeItem(items)
         .then(select(params, this.id));
@@ -303,7 +304,7 @@ class Service extends AdapterService {
   }
 }
 
-function init (options) {
+function init(options) {
   return new Service(options);
 };
 
