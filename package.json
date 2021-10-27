@@ -73,7 +73,6 @@
     "core-js": "^2.6.12",
     "cross-env": "^7.0.3",
     "eslint-config-standard": "^13.0.1",
-    "localstorage-memory": "^1.0.3",
     "mocha": "^9.0.0",
     "npm-check-updates": "^11.0.0",
     "nyc": "^14.1.1",

@@ -3957,7 +3957,7 @@ var Service = /*#__PURE__*/function (_AdapterService) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                debug("_getEntries(".concat(JSON.stringify(params), ")") + this._debugSuffix);
+                debug("getEntries(".concat(JSON.stringify(params), ")") + this._debugSuffix);
                 _this$filterQuery = this.filterQuery(params), query = _this$filterQuery.query;
                 return _context2.abrupt("return", this._find(Object.assign({}, params, {
                   paginate: false,
@@ -4004,8 +4004,8 @@ var Service = /*#__PURE__*/function (_AdapterService) {
 
               case 5:
                 keys = _context5.sent;
+                debug("_find keys = ".concat(JSON.stringify(keys))); // An async equivalent of Array.filter()
 
-                // An async equivalent of Array.filter()
                 asyncFilter = function asyncFilter(arr, predicate) {
                   return __awaiter(_this2, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
                     var results;
@@ -4032,7 +4032,7 @@ var Service = /*#__PURE__*/function (_AdapterService) {
                 }; // Determine relevant keys
 
 
-                _context5.next = 9;
+                _context5.next = 10;
                 return asyncFilter(keys, function (key) {
                   return __awaiter(_this2, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
                     var item, match;
@@ -4057,33 +4057,40 @@ var Service = /*#__PURE__*/function (_AdapterService) {
                   }));
                 });
 
-              case 9:
+              case 10:
                 keys = _context5.sent;
-                _context5.next = 12;
+                debug("_find keys.asyncFilter = ".concat(JSON.stringify(keys))); // Now retrieve all values
+
+                _context5.next = 14;
                 return Promise.all(keys.map(function (key) {
                   return self.getModel().getItem(key);
                 }));
 
-              case 12:
+              case 14:
                 values = _context5.sent;
-                total = values.length; // Now we sort (if requested)
+                total = values.length;
+                debug("_find values.length = ".concat(values.length, ", values = ").concat(JSON.stringify(values))); // Now we sort (if requested)
 
                 if (filters.$sort !== undefined) {
                   values.sort(this.options.sorter(filters.$sort));
+                  debug("_find values.sort = ".concat(JSON.stringify(values)));
                 } // Skip requested items
 
 
                 if (filters.$skip !== undefined) {
                   values = values.slice(filters.$skip);
+                  debug("_find values.skip = ".concat(JSON.stringify(values)));
                 } // Limit result to specified (or default) length
 
 
                 if (filters.$limit !== undefined) {
                   values = values.slice(0, filters.$limit);
+                  debug("_find values.limit = ".concat(JSON.stringify(values)));
                 } // If wanted we convert all ISO string dates to Date objects
 
 
                 values = stringsToDates(this._dates)(values);
+                debug("_find values.stringsToDates = ".concat(JSON.stringify(values)));
                 result = {
                   total: total,
                   limit: filters.$limit,
@@ -4094,18 +4101,18 @@ var Service = /*#__PURE__*/function (_AdapterService) {
                 };
 
                 if (paginate && paginate["default"]) {
-                  _context5.next = 22;
+                  _context5.next = 26;
                   break;
                 }
 
                 debug("_find res = ".concat(JSON.stringify(result.data)));
                 return _context5.abrupt("return", result.data);
 
-              case 22:
+              case 26:
                 debug("_find res = ".concat(JSON.stringify(result)));
                 return _context5.abrupt("return", result);
 
-              case 24:
+              case 28:
               case "end":
                 return _context5.stop();
             }
