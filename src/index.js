@@ -194,17 +194,17 @@ class Service extends AdapterService {
     const { query } = this.filterQuery(params);
 
     return this.getModel().getItem(String(id), null)
+      .catch(err => { throw new errors.NotFound(`No record found for ${this.id} '${id}', err=${err.name} ${err.message}` + this._debugSuffix); })
       .then(item => {
-        if (item === null) throw new errors.NotFound(`No match for query=${JSON.stringify(query)}` + this._debugSuffix);
+        if (item === null) throw new errors.NotFound(`No match for ${this.id} = '${id}',  query=${JSON.stringify(query)}` + this._debugSuffix);
 
         const match = self.options.matcher(query)(item);
         if (match) {
           return item;
         } else {
-          throw new errors.NotFound(`No match for query=${JSON.stringify(query)}` + this._debugSuffix);
+          throw new errors.NotFound(`No match for item = ${JSON.stringify(item)}, query=${JSON.stringify(query)}` + this._debugSuffix);
         }
       })
-      .catch(err => { throw new errors.NotFound(`No record found for id '${id}', err=${err.message}` + this._debugSuffix); })
       .then(select(params, this.id))
       .then(stringsToDates(this._dates));
   }
