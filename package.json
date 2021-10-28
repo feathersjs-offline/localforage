@@ -1,6 +1,6 @@
 {
   "name": "@feathersjs-offline/localforage",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A FeathersJS client side service based on localforage that persists to IndexedDB, WebSQL, or LocalStorage",
   "keywords": [
     "feathers",
@@ -42,14 +42,14 @@
     "url": "git://github.com/feathersjs-offline/localforage.git"
   },
   "engines": {
-    "node": ">= 11"
+    "node": ">= 12"
   },
   "scripts": {
     "prepublish": "npm run compile",
     "compile": "shx rm -rf lib/ && tsc",
     "unit": "npm run mocha",
     "test": "npm run compile && npm run mocha",
-    "mocha": "nyc mocha --config ./.mocharc.ts.json --exit --recursive test/**.test.js test/**/*.test.js",
+    "mocha": "nyc mocha --config ./.mocharc.ts.json --exit  test/*.test.js",
     "webpack": "parallel-webpack -- --env.home=`pwd`"
   },
   "dependencies": {
