@@ -3,7 +3,7 @@ name: 'Bump Version Plus'
 on:
   push:
     branches:
-      - 'master'
+      - 'main'
 
 jobs:
   bump-version:
@@ -17,9 +17,9 @@ jobs:
           ref: ${{ github.ref }}
       - name: 'cat package.json'
         run: cat ./package.json
-      - name: 'Automated Version Bump'
+      - name: Automated Version Bump Plus
+        uses: 'mhillerstrom/gh-action-bump-version-plus@v2'
         id: version-bump
-        uses: 'mhillerstrom/gh-action-bump-version-plus@master'
         with:
           tag-prefix: 'v'
         env:
