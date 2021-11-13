@@ -19,7 +19,7 @@ jobs:
         run: cat ./package.json
       - name: 'Automated Version Bump'
         id: version-bump
-        uses: 'gh-action-bump-version-plus@v2'
+        uses: 'mhillerstrom/gh-action-bump-version-plus@master'
         with:
           tag-prefix: 'v'
         env:
