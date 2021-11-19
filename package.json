@@ -1,6 +1,6 @@
 {
   "name": "@feathersjs-offline/localforage",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "A FeathersJS client side service based on localforage that persists to IndexedDB, WebSQL, or LocalStorage",
   "keywords": [
     "feathers",
