@@ -9,8 +9,6 @@ jobs:
   bump-version:
     name: 'Bump version on master'
     runs-on: ubuntu-latest
-    if: ${{ ! contains(github.ref.name, 'dependabot') }}
-
 
     steps:
       - name: 'Checkout source code'
@@ -18,10 +16,11 @@ jobs:
         with:
           ref: ${{ github.ref }}
       - name: Automated Version Bump Plus
-        uses: 'mhillerstrom/gh-action-bump-version-plus@v2.0.3'
+        uses: 'mhillerstrom/gh-action-bump-version-plus@v2.0.4'
         id: version-bump
         with:
           tag-prefix: 'v'
+          skip-if-commit-contains: 'Dependabot'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: 'cat package.json'
