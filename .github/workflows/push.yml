@@ -9,7 +9,7 @@ jobs:
   bump-version:
     name: 'Bump version on master'
     runs-on: ubuntu-latest
-    if: ${{ ! contains(github.issue.comment.body, 'dependabot') }}
+    if: ${{ ! contains(github.ref.name, 'dependabot') }}
 
 
     steps:
