@@ -58,7 +58,7 @@
     "@feathersjs/errors": "^4.5.11",
     "debug": "^4.3.2",
     "localforage": "^1.10.0",
-    "sift": "^15.1.0"
+    "sift": "^16.0.0"
   },
   "devDependencies": {
     "@feathersjs/adapter-tests": "^4.5.11",
