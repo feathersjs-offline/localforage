@@ -74,7 +74,7 @@
     "cross-env": "^7.0.3",
     "eslint-config-standard": "^13.0.1",
     "mocha": "^10.0.0",
-    "npm-check-updates": "^13.1.1",
+    "npm-check-updates": "^15.0.1",
     "nyc": "^15.1.0",
     "parallel-webpack": "^2.6.0",
     "shx": "^0.3.3",
