@@ -54,7 +54,7 @@
   },
   "dependencies": {
     "@feathersjs/adapter-commons": "^4.5.11",
-    "@feathersjs/commons": "^4.5.11",
+    "@feathersjs/commons": "^5.0.0",
     "@feathersjs/errors": "^4.5.11",
     "debug": "^4.3.2",
     "localforage": "^1.10.0",
